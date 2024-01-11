@@ -127,3 +127,57 @@ kubectl get service demo-k8s
 curl  --location <external_ip_address>/hello
 curl  --location <external_ip_address>/time
 ```
+
+
+## Add Persistent Volume
+
+We create a persistent volume for the application. 
+The persistent volume will be mounted to `/data` in the `demo-k8s-worker` container.
+The `demo-k8s-worker` container will write the local time to `/data/log.txt` when it is called by `demo-k8s-app`.
+
+1. We need to mount the persistent volume to the `demo-k8s-worker` container.
+We need to modify the `demo-k8s.yaml` file as follows:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-k8s
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-k8s
+  template:
+    metadata:
+      labels:
+        app: demo-k8s
+    spec:
+      containers:
+        - name: demo-k8s-app
+          image: xuzhang037/demo-k8s-app:latest
+          ports:
+            - containerPort: 80
+        - name: demo-k8s-worker
+          image: xuzhang037/demo-k8s-worker:latest
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - mountPath: /data
+              name: my-storage
+      volumes:
+        - name: my-storage
+          persistentVolumeClaim:
+            claimName: my-pvc
+```
+
+2. Create persistent volume claim and persistent volume. 
+More details can be found in demo-k8s-storage.yaml.
+```bash
+kubectl apply -f demo-k8s-storage.yaml
+```
+
+3. When you enter the container `demo-k8s-worker`, you can see the persistent volume is mounted to `/data`.
+```bash
+kubectl exec -it <pod_name> -c <container_name> -- /bin/bash
+cd /data
+```

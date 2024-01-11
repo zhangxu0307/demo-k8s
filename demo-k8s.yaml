@@ -13,15 +13,21 @@ spec:
         app: demo-k8s
     spec:
       containers:
-      - name: demo-k8s-app
-        image: xuzhang037/demo-k8s-app:latest
-        ports:
-        - containerPort: 80
-      - name: demo-k8s-worker
-        image: xuzhang037/demo-k8s-worker:latest
-        ports:
-          - containerPort: 5000
-
+        - name: demo-k8s-app
+          image: xuzhang037/demo-k8s-app:latest
+          ports:
+            - containerPort: 80
+        - name: demo-k8s-worker
+          image: xuzhang037/demo-k8s-worker:latest
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - mountPath: /data
+              name: my-storage
+      volumes:
+        - name: my-storage
+          persistentVolumeClaim:
+            claimName: my-pvc
 ---
 apiVersion: v1
 kind: Service
